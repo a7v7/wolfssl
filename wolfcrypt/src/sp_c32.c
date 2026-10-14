@@ -10298,7 +10298,6 @@ static void sp_3072_to_bin_112(sp_digit* r, byte* a)
     }
 }
 
-#if (defined(WOLFSSL_HAVE_SP_RSA) && !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || defined(WOLFSSL_HAVE_SP_DH)
 /* Normalize the values in each word to 28 bits.
  *
  * @param [in, out] a  Array of sp_digit to normalize.
@@ -10325,7 +10324,7 @@ static void sp_3072_norm_56(sp_digit* a)
     a[55] += a[54] >> 28; a[54] &= 0xfffffff;
 }
 
-#endif /* (WOLFSSL_HAVE_SP_RSA && !WOLFSSL_RSA_PUBLIC_ONLY) || WOLFSSL_HAVE_SP_DH */
+#if (defined(WOLFSSL_HAVE_SP_RSA) && !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || defined(WOLFSSL_HAVE_SP_DH)
 /* Normalize the values in each word to 28 bits.
  *
  * @param [in, out] a  Array of sp_digit to normalize.
@@ -10351,6 +10350,7 @@ static void sp_3072_norm_55(sp_digit* a)
     a[54] += a[53] >> 28; a[53] &= 0xfffffff;
 }
 
+#endif /* (WOLFSSL_HAVE_SP_RSA && !WOLFSSL_RSA_PUBLIC_ONLY) || WOLFSSL_HAVE_SP_DH */
 /* Normalize the values in each word to 28 bits.
  *
  * @param [in, out] a  Array of sp_digit to normalize.

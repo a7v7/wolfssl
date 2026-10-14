@@ -3688,7 +3688,7 @@
 /* Determine when mp_prime_gen is required. */
 #if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY) && \
     !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DH) || \
-    (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN))
+    !defined(NO_DSA) || (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN))
     #define WOLFSSL_SP_PRIME_GEN
 #endif
 

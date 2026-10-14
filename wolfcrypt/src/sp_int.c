@@ -5276,7 +5276,8 @@ int sp_init(sp_int* a)
     return err;
 }
 
-#if !defined(WOLFSSL_RSA_PUBLIC_ONLY) || !defined(NO_DH) || defined(HAVE_ECC)
+#if !defined(WOLFSSL_RSA_PUBLIC_ONLY) || !defined(NO_DH) || \
+    defined(HAVE_ECC) || !defined(NO_DSA)
 /* Initialize up to six multi-precision numbers to be zero.
  *
  * @param [out] n1  SP integer.
@@ -5313,7 +5314,7 @@ int sp_init_multi(sp_int* n1, sp_int* n2, sp_int* n3, sp_int* n4, sp_int* n5,
 
     return MP_OKAY;
 }
-#endif /* !WOLFSSL_RSA_PUBLIC_ONLY || !NO_DH || HAVE_ECC */
+#endif /* !WOLFSSL_RSA_PUBLIC_ONLY || !NO_DH || HAVE_ECC || !NO_DSA */
 
 /* Free the memory allocated in the multi-precision number.
  *
@@ -5329,7 +5330,7 @@ void sp_free(sp_int* a)
 }
 
 #if (!defined(NO_RSA) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
-    !defined(NO_DH) || defined(HAVE_ECC)
+    !defined(NO_DH) || defined(HAVE_ECC) || !defined(NO_DSA)
 /* Grow multi-precision number to be able to hold l digits.
  * This function does nothing as the number of digits is fixed.
  *
@@ -5362,7 +5363,8 @@ int sp_grow(sp_int* a, int l)
 
     return err;
 }
-#endif /* (!NO_RSA && !WOLFSSL_RSA_VERIFY_ONLY) || !NO_DH || HAVE_ECC */
+#endif /* (!NO_RSA && !WOLFSSL_RSA_VERIFY_ONLY) || !NO_DH || HAVE_ECC ||
+        * !NO_DSA */
 
 #if (!defined(NO_RSA) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
     defined(HAVE_ECC) || defined(WOLFSSL_PUBLIC_MP)
@@ -6097,7 +6099,7 @@ int sp_count_bits(const sp_int* a)
 
 #if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY) && \
     !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DH) || \
-    (defined(HAVE_ECC) && defined(FP_ECC)) || \
+    !defined(NO_DSA) || (defined(HAVE_ECC) && defined(FP_ECC)) || \
     (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN))
 
 /* Number of entries in array of number of least significant zero bits. */
@@ -6808,7 +6810,8 @@ int sp_mul_d(const sp_int* a, sp_int_digit d, sp_int* r)
 #if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
     !defined(NO_DH) || \
     (defined(HAVE_ECC) && (defined(FP_ECC) || defined(HAVE_COMP_KEY))) || \
-    (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN))
+    (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN)) || \
+    defined(WOLFSSL_SP_PRIME_GEN)
 #define WOLFSSL_SP_MOD_D
 #endif
 
@@ -13138,9 +13141,9 @@ int sp_invmod_mont_ct(const sp_int* a, const sp_int* m, sp_int* r,
  * Exponentiation functions
  **************************/
 
-#if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY) && \
-    !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DH) || \
-    defined(OPENSSL_ALL)
+#if (defined(WOLFSSL_SP_MATH_ALL) && ((!defined(WOLFSSL_RSA_VERIFY_ONLY) && \
+    !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DSA))) || \
+    !defined(NO_DH) || defined(OPENSSL_ALL)
 
 #ifndef WC_PROTECT_ENCRYPTED_MEM
 
@@ -13404,8 +13407,8 @@ static int _sp_exptmod_ex(const sp_int* b, const sp_int* e, int bits,
 #endif
 
 #if (defined(WOLFSSL_SP_MATH_ALL) && ((!defined(WOLFSSL_RSA_VERIFY_ONLY) && \
-    !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DH))) || \
-    defined(OPENSSL_ALL)
+    !defined(WOLFSSL_RSA_PUBLIC_ONLY)) || !defined(NO_DH) || \
+    !defined(NO_DSA))) || defined(OPENSSL_ALL)
 #ifndef WC_NO_HARDEN
 #if !defined(WC_NO_CACHE_RESISTANT)
 
@@ -14169,9 +14172,9 @@ static int _sp_exptmod_base_2(const sp_int* e, int digits, const sp_int* m,
 }
 #endif
 
-#if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
-    !defined(NO_DH) || (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN)) || \
-    defined(OPENSSL_ALL)
+#if (defined(WOLFSSL_SP_MATH_ALL) && (!defined(WOLFSSL_RSA_VERIFY_ONLY) || \
+    !defined(NO_DSA))) || !defined(NO_DH) || \
+    (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN)) || defined(OPENSSL_ALL)
 /* Exponentiates b to the power of e modulo m into r: r = b ^ e mod m
  *
  * Error returned when parameters r == e or r == m and base >= modulus.
@@ -14304,7 +14307,8 @@ int sp_exptmod_ex(const sp_int* b, const sp_int* e, int digits, const sp_int* m,
     }
 #if defined(WOLFSSL_SP_MATH_ALL) || !defined(NO_DH) || defined(OPENSSL_ALL)
 #if (defined(WOLFSSL_RSA_VERIFY_ONLY) || defined(WOLFSSL_RSA_PUBLIC_ONLY)) && \
-    defined(NO_DH)
+    defined(NO_DH) && defined(NO_DSA)
+    /* Only public exponents: no DSA private key or nonce reaches here. */
     if ((!done) && (err == MP_OKAY)) {
         /* Use non-constant time version - fastest. */
         err = sp_exptmod_nct(b, e, m, r);
@@ -14354,9 +14358,9 @@ int sp_exptmod_ex(const sp_int* b, const sp_int* e, int digits, const sp_int* m,
 }
 #endif
 
-#if (defined(WOLFSSL_SP_MATH_ALL) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
-    !defined(NO_DH) || (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN)) || \
-    defined(OPENSSL_ALL)
+#if (defined(WOLFSSL_SP_MATH_ALL) && (!defined(WOLFSSL_RSA_VERIFY_ONLY) || \
+    !defined(NO_DSA))) || !defined(NO_DH) || \
+    (!defined(NO_RSA) && defined(WOLFSSL_KEY_GEN)) || defined(OPENSSL_ALL)
 /* Exponentiates b to the power of e modulo m into r: r = b ^ e mod m
  *
  * @param [in]  b  SP integer that is the base.
@@ -15041,7 +15045,7 @@ int sp_mod_2d(const sp_int* a, int e, sp_int* r)
 #endif /* (WOLFSSL_SP_MATH_ALL && !WOLFSSL_RSA_VERIFY_ONLY)) || HAVE_ECC */
 
 #if (defined(WOLFSSL_SP_MATH_ALL) && (!defined(WOLFSSL_RSA_VERIFY_ONLY) || \
-    !defined(NO_DH))) || defined(OPENSSL_ALL)
+    !defined(NO_DH) || !defined(NO_DSA))) || defined(OPENSSL_ALL)
 /* Multiply by 2^e: r = a << e
  *
  * @param [in]  a  SP integer to multiply.

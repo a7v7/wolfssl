@@ -20,6 +20,7 @@ EXTRA_DIST += examples/configs/user_settings_pkcs7.h
 EXTRA_DIST += examples/configs/user_settings_platformio.h
 EXTRA_DIST += examples/configs/user_settings_pq.h
 EXTRA_DIST += examples/configs/user_settings_rsa_only.h
+EXTRA_DIST += examples/configs/user_settings_rsa_pub_dsa.h
 EXTRA_DIST += examples/configs/user_settings_stm32.h
 EXTRA_DIST += examples/configs/user_settings_template.h
 EXTRA_DIST += examples/configs/user_settings_tls12.h

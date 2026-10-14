@@ -133,6 +133,32 @@
   now list `WOLFSSL_CRYPTOCELL` alongside the other ports that replace the
   software curve arithmetic.
 
+* **Fix (DSA in an SP math RSA public-only or verify-only build)**: with
+  `WOLFSSL_RSA_PUBLIC_ONLY` or `WOLFSSL_RSA_VERIFY_ONLY`, `NO_DH`, no ECC and
+  DSA left enabled, `sp_int.c` compiled out math that DSA still uses, so
+  `wc_InitDsaKey()`, `wc_DsaSign_ex()`, `wc_DsaVerify_ex()` and the DSA
+  parameter import failed to link with undefined `sp_init_multi`,
+  `sp_prime_is_prime` and `sp_prime_is_prime_ex` (and, in verify-only builds,
+  `sp_exptmod`, `sp_exptmod_ex`, `sp_grow` and `sp_mod_d`). The guards for
+  those functions, and `WOLFSSL_SP_PRIME_GEN` in `settings.h`, now include
+  DSA. In the public-only builds `sp_exptmod_ex()` used the non-constant-time
+  exponentiation for every call because it assumed only public RSA exponents
+  could reach it, which would have exposed the DSA nonce and private key to
+  timing attacks; DSA builds now take the hardened constant-time path. The
+  32-bit SP code in `sp_c32.c` also failed to compile for RSA public-only
+  with `SP_INT_BITS` 3072 and without `WOLFSSL_SP_SMALL` (as on RISC-V rv32im):
+  `sp_3072_norm_56()`, which the 3072-bit multiply needs, was compiled out,
+  while the unused `sp_3072_norm_55()` was kept. Added
+  `examples/configs/user_settings_rsa_pub_dsa.h` and CI builds of it.
+
+* **Fix (`wolfcrypt_test()` failed RSA in public-only builds without
+  blinding)**: `rsa_sig_test()` checked `HAVE_FIPS || !WC_RSA_BLINDING`, which
+  expects `wc_SignatureGenerate()` to succeed, before checking
+  `WOLFSSL_RSA_PUBLIC_ONLY`/`WOLFSSL_RSA_VERIFY_ONLY`, where signing is not
+  compiled in. A public-only build without `WC_RSA_BLINDING` therefore treated
+  the correct `SIG_TYPE_E` (-231) as a failure. The public-only/verify-only
+  case is now checked first.
+
 ## Fixes
 
 * ML-KEM and ML-DSA now keep the key's device id on their internal SHAKE hashing, so a registered crypto callback sees the SHAKE-256 Update and Final calls. by @Frauschi (PR 11544)
