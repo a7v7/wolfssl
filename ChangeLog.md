@@ -151,6 +151,16 @@
   while the unused `sp_3072_norm_55()` was kept. Added
   `examples/configs/user_settings_rsa_pub_dsa.h` and CI builds of it.
 
+* **Fix (SP math RSA verify-only build without `WOLFSSL_RSA_PUBLIC_ONLY`
+  failed to link)**: when `WOLFSSL_RSA_VERIFY_ONLY` is defined on its own (as
+  the tinytls13 `rsaverify` adder does) and DSA, DH and ECC are all off,
+  `sp_sub_d` and `sp_grow` were compiled out, although the RSA private key
+  import in `rsa.c` (`wc_RsaPrivateKeyDecodeRaw()`) and the
+  `sp_<bits>_to_mp()` helpers in the generated SP code are still built
+  unless `WOLFSSL_RSA_PUBLIC_ONLY` is also set. Both functions are now
+  compiled for RSA unless both macros are defined, which is what
+  `--enable-rsavfy` sets.
+
 * **Fix (`wolfcrypt_test()` failed RSA in public-only builds without
   blinding)**: `rsa_sig_test()` checked `HAVE_FIPS || !WC_RSA_BLINDING`, which
   expects `wc_SignatureGenerate()` to succeed, before checking

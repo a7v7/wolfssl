@@ -5329,7 +5329,9 @@ void sp_free(sp_int* a)
     }
 }
 
-#if (!defined(NO_RSA) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
+/* RSA: also used by sp_<bits>_to_mp() in the SP code unless public-only. */
+#if (!defined(NO_RSA) && (!defined(WOLFSSL_RSA_VERIFY_ONLY) || \
+    !defined(WOLFSSL_RSA_PUBLIC_ONLY))) || \
     !defined(NO_DH) || defined(HAVE_ECC) || !defined(NO_DSA)
 /* Grow multi-precision number to be able to hold l digits.
  * This function does nothing as the number of digits is fixed.
@@ -5363,8 +5365,8 @@ int sp_grow(sp_int* a, int l)
 
     return err;
 }
-#endif /* (!NO_RSA && !WOLFSSL_RSA_VERIFY_ONLY) || !NO_DH || HAVE_ECC ||
-        * !NO_DSA */
+#endif /* (!NO_RSA && (!WOLFSSL_RSA_VERIFY_ONLY ||
+        * !WOLFSSL_RSA_PUBLIC_ONLY)) || !NO_DH || HAVE_ECC || !NO_DSA */
 
 #if (!defined(NO_RSA) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
     defined(HAVE_ECC) || defined(WOLFSSL_PUBLIC_MP)

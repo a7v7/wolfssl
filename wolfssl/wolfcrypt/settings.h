@@ -3654,8 +3654,10 @@
     #define WOLFSSL_SP_ADD_D
 #endif
 
-/* Determine when mp_sub_d is required. */
-#if (!defined(NO_RSA) && !defined(WOLFSSL_RSA_VERIFY_ONLY)) || \
+/* Determine when mp_sub_d is required.
+ * RSA private key import (CalcDX) is compiled unless public-only. */
+#if (!defined(NO_RSA) && (!defined(WOLFSSL_RSA_VERIFY_ONLY) || \
+    !defined(WOLFSSL_RSA_PUBLIC_ONLY))) || \
     !defined(NO_DH) || defined(HAVE_ECC) || !defined(NO_DSA)
     #define WOLFSSL_SP_SUB_D
 #endif
